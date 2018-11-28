@@ -7,6 +7,8 @@ from torchreid.datasets import init_imgreid_dataset
 import os
 import sys
 
+#set the srouce and target paths here:
+#data_root - root folder where the folder names 'market1501' is
 from ..paths import data_preparation_root, data_root, market_pose_label_path
 
 dataset_name = "market1501"
