@@ -106,3 +106,81 @@ def get_gt_maps_const(subset, points, output_size, radius = 5., initial_size=(12
                     hitmaps_gt[i, h, w] = 1
 
     return hitmaps_gt
+
+
+import cv2
+
+
+colors = [[255, 0, 0], [255, 85, 0], [255, 170, 0], [255, 255, 0], [170, 255, 0], [85, 255, 0], [0, 255, 0], \
+          [0, 255, 85], [0, 255, 170], [0, 255, 255], [0, 170, 255], [0, 85, 255], [0, 0, 255], [85, 0, 255], \
+          [170, 0, 255], [255, 0, 255], [255, 0, 170], [255, 0, 85]]
+
+
+def draw_pose(subset, points, output_size, stickwidth = 3, radius = 5., initial_size=(128, 64)):
+    if not output_size:
+        canvas = np.zeros((initial_size[0], initial_size[1], 3), dtype = np.uint8)
+    else:
+        canvas = np.zeros((output_size[0], output_size[1], 3), dtype = np.uint8)
+
+    # take the person with largest number of points
+    person = max(subset, key=lambda x: x[-1])
+    if output_size:
+        radius = (radius / initial_size[0] * output_size[0]  +
+                  radius / initial_size[1] * output_size[1]) / 2
+
+
+    for i in range(17):
+        index = person[np.array(limbSeq[i])-1]
+
+        if -1 in index:
+            continue
+
+        Y = [points[index[0]][0], points[index[1]][0]]
+        X = [points[index[0]][1], points[index[1]][1]]
+
+        if output_size:
+            Y = Y[0] / initial_size[0] * output_size[0], Y[1] / initial_size[1] * output_size[1]
+            X = X[0] / initial_size[0] * output_size[0], X[1] / initial_size[1] * output_size[1]
+
+        cv2.line(canvas, pt1 = (int(Y[0]), int(X[0])), pt2 = (int(Y[1]), int(X[1])), color = colors[i], thickness = stickwidth)
+
+
+
+    for i in range(17):
+        j1,j2 = limbSeq[i]
+
+        index = person[np.array(limbSeq[i])-1]
+
+        if -1 in index:
+            continue
+        Y = [points[index[0]][0], points[index[1]][0]]
+        X = [points[index[0]][1], points[index[1]][1]]
+
+        if output_size:
+            Y = Y[0] / initial_size[0] * output_size[0], Y[1] / initial_size[1] * output_size[1]
+            X = X[0] / initial_size[0] * output_size[0], X[1] / initial_size[1] * output_size[1]
+
+
+        cv2.circle(canvas, (int(Y[0]), int(X[0])), int(radius), colors[j1-1], thickness=-1)
+        cv2.circle(canvas, (int(Y[1]), int(X[1])), int(radius), colors[j2-1], thickness=-1)
+
+    return canvas
+
+
+
+
+
+
+pose_data = pickle.load(open(market_pose_label_path, 'rb'))
+print pose_data.keys()[0]
+
+print pose_data['0816_c6s2_095218_02']['subset']
+print pose_data['0816_c6s2_095218_02']['points']
+
+canvas = draw_pose(pose_data['0816_c6s2_095218_02']['subset'],
+               pose_data['0816_c6s2_095218_02']['points'],
+               output_size = (128, 64), stickwidth = 3, radius = 5., initial_size=(128, 64))
+
+import matplotlib.pyplot as plt
+plt.imshow(canvas)
+plt.show()
